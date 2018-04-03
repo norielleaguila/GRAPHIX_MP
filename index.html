@@ -1,0 +1,64 @@
+<html>
+
+    <head>
+        <script src="js/three.js"></script>
+		<script src="js/OBJLoader.js"></script>
+    </head>
+
+    <body>
+        <script>
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+            
+//            camera.position.z = 5;
+            
+            var keyLight = new THREE.DirectionalLight(new THREE.Color('hsl(30, 100%, 75%)'), 1.0);
+            keyLight.position.set(-100, 0, 100);
+
+            var fillLight = new THREE.DirectionalLight(new THREE.Color('hsl(240, 100%, 75%)'), 0.75);
+            fillLight.position.set(100, 0, 100);
+
+            var backLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            backLight.position.set(100, 0, -100).normalize();
+
+            scene.add(keyLight);
+            scene.add(fillLight);
+            scene.add(backLight);
+
+            var loader = new THREE.OBJLoader();     // create the object loader
+            
+            // Loading the object
+            loader.load(
+                // Object path
+                'obj/Air_Balloon.obj',
+                // Function when object is loaded
+                function(object){
+                    scene.add(object);
+                    object.position.z = -20;
+                    object.position.y = -15;
+                },
+                // Function when loading in progress
+                function(xhr){
+                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                },
+                // Function for loading errors
+                function(error){
+                    console.log(error);
+                }
+            );
+            
+            var animate = function () {
+                requestAnimationFrame( animate );
+                renderer.render(scene, camera);
+            };
+
+            animate();
+            
+		</script>
+    </body>
+    
+</html>
