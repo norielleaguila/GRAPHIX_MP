@@ -14,7 +14,7 @@
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			document.body.appendChild( renderer.domElement );
             
-//            camera.position.z = 5;
+            scene.background = new THREE.Color( 0xffbf80 );
             
             var keyLight = new THREE.DirectionalLight(new THREE.Color('hsl(30, 100%, 75%)'), 1.0);
             keyLight.position.set(-100, 0, 100);
@@ -29,17 +29,18 @@
             scene.add(fillLight);
             scene.add(backLight);
 
-            var loader = new THREE.OBJLoader();     // create the object loader
+            var balloonLoader = new THREE.OBJLoader();     // create the object loader
             
             // Loading the object
-            loader.load(
+            balloonLoader.load(
                 // Object path
                 'obj/Air_Balloon.obj',
                 // Function when object is loaded
                 function(object){
                     scene.add(object);
-                    object.position.z = -20;
-                    object.position.y = -15;
+                    object.position.z = -0.45;
+                    object.position.y = -2.5;
+                    object.rotateY(0);
                 },
                 // Function when loading in progress
                 function(xhr){
@@ -50,6 +51,25 @@
                     console.log(error);
                 }
             );
+            
+            var cloudLoader = new THREE.OBJLoader();
+            
+            cloudLoader.load(
+                'obj/cloud.obj',
+                function(object){
+                    scene.add(object);
+                    object.position.z = -15;
+                    object.rotateY(-10);
+                    
+                },
+                
+                function(xhr){
+                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                },
+                function(error){
+                    console.log(error);
+                }
+            )
             
             var animate = function () {
                 requestAnimationFrame( animate );
