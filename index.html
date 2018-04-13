@@ -3,6 +3,11 @@
     <head>
         <script src="js/three.js"></script>
 		<script src="js/OBJLoader.js"></script>
+        
+        <style>
+            body { margin: 0; background: linear-gradient(#e4e0ba, #f7d9aa);}
+			canvas { width: 100%; height: 100% }
+        </style>
     </head>
 
     <body>
@@ -14,62 +19,100 @@
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			document.body.appendChild( renderer.domElement );
             
-            scene.background = new THREE.Color( 0xffbf80 );
+            renderer.shadowMapEnabled = true;
+            renderer.shadowMapType = THREE.PCFSoftShadowMap;
             
-            var keyLight = new THREE.DirectionalLight(new THREE.Color('hsl(30, 100%, 75%)'), 1.0);
-            keyLight.position.set(-100, 0, 100);
-
-            var fillLight = new THREE.DirectionalLight(new THREE.Color('hsl(240, 100%, 75%)'), 0.75);
-            fillLight.position.set(100, 0, 100);
-
-            var backLight = new THREE.DirectionalLight(0xffffff, 1.0);
-            backLight.position.set(100, 0, -100).normalize();
-
-            scene.add(keyLight);
-            scene.add(fillLight);
-            scene.add(backLight);
-
-            var balloonLoader = new THREE.OBJLoader();     // create the object loader
+            scene.background = new THREE.Color( 0x76bfe5 );
             
-            // Loading the object
-            balloonLoader.load(
-                // Object path
-                'obj/Air_Balloon.obj',
-                // Function when object is loaded
-                function(object){
-                    scene.add(object);
-                    object.position.z = -0.45;
-                    object.position.y = -2.5;
-                    object.rotateY(0);
-                },
-                // Function when loading in progress
-                function(xhr){
-                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-                },
-                // Function for loading errors
-                function(error){
-                    console.log(error);
-                }
-            );
+            var light = new THREE.DirectionalLight( 0xffffff, 1, 100 );
+            light.position.set( 50, 100, -100 ); 			//sun
+            light.castShadow = true;            // default false
+            scene.add( light );
             
-            var cloudLoader = new THREE.OBJLoader();
+            //Set up shadow properties for the light
+            light.shadow.mapSize.width = 512;  // default
+            light.shadow.mapSize.height = 512; // default
+            light.shadow.camera.near = 0.5;    // default
+            light.shadow.camera.far = 500;     // default
             
-            cloudLoader.load(
-                'obj/cloud.obj',
-                function(object){
-                    scene.add(object);
-                    object.position.z = -15;
-                    object.rotateY(-10);
-                    
-                },
-                
-                function(xhr){
-                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-                },
-                function(error){
-                    console.log(error);
-                }
-            )
+            var softlight = new THREE.DirectionalLight(0xebd9c7, 0.4);
+            softlight.position.set(0, 0, 100);
+            scene.add(softlight);
+            
+            var hemisphereLight = new THREE.HemisphereLight(0xaaaaaa,0x000000, .9);
+            scene.add(hemisphereLight);
+            
+            var texture = new THREE.TextureLoader().load( "textures/basket.png" );
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set( 4, 4 );
+            
+            var geometry = new THREE.BoxBufferGeometry( 2, 1, 0.05 );
+            var material = new THREE.MeshLambertMaterial( {
+//                color: 0xad8863,
+                map: texture
+            } );
+            
+            var front = new THREE.Mesh( geometry, material );
+            front.position.z = -1;
+            front.position.y = -0.9;
+            front.castShadow = true;
+            front.receiveShadow = false;
+            
+            var left = new THREE.Mesh( geometry, material );
+            left.position.z = -1;
+            left.position.y = -1.25;
+            left.position.x = -2.25;
+            left.rotateY(-90);
+            
+            var right = new THREE.Mesh( geometry, material );
+            right.position.z = -1;
+            right.position.y = -1.25;
+            right.position.x = 2.25;
+            right.rotateY(90);
+            
+            scene.add( front );
+            scene.add(left);
+            scene.add(right);
+            
+            var cylinderGeometry = new THREE.CylinderBufferGeometry( 0.025, 0.025, 20, 32 );
+            var cylinderMaterial = new THREE.MeshLambertMaterial( {color: 0xd0a478} );
+            
+            var cylinder = new THREE.Mesh( cylinderGeometry, cylinderMaterial );
+            
+            cylinder.castShadow = true;
+            cylinder.receiveShadow = false;
+            cylinder.position.set(-2, 0, -2);
+            
+            var cylinder2 = new THREE.Mesh( cylinderGeometry, cylinderMaterial );
+            
+            cylinder2.castShadow = true;
+            cylinder2.receiveShadow = false;
+            cylinder2.position.set(2, 0, -2);
+            
+            scene.add( cylinder );
+            scene.add( cylinder2 );
+            
+//            var cloudLoader = new THREE.OBJLoader();
+//            
+//            cloudLoader.load(
+//                'obj/cloud.obj',
+//                function(object){
+//                    scene.add(object);
+//                    object.position.z = -15;
+//                    object.rotateY(-10);
+//                    
+//                },
+//                
+//                function(xhr){
+//                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+//                },
+//                function(error){
+//                    console.log(error);
+//                }
+//            );
+            
+            
             
             var animate = function () {
                 requestAnimationFrame( animate );
