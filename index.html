@@ -4,194 +4,9 @@
     <script src="js/jquery-3.3.1.min.js"></script>
     <script src="js/three.js"></script>
     <script src="js/OBJLoader.js"></script>
+    <script src="js/index.js"></script>
     <link href='https://fonts.googleapis.com/css?family=Amatic SC' rel='stylesheet'>
-
-    <style>
-    body {
-        margin: 0;
-        font-family: 'Amatic SC';
-        font-size: 25pt;
-        /* color: white; */
-    }
-
-    body *{
-        font-family: 'Amatic SC';
-        font-size: 25pt;
-        color: white;
-    }
-
-    canvas {
-        width: 100%;
-        height: 100%;
-    }
-
-    #playzone{
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: linear-gradient(to bottom, rgba(146,205,221,1) 0%, rgba(117,189,209,1) 27%, rgba(245,124,103,1) 64%, rgba(240, 120, 40, 0.89) 83%, rgba(240,120,40,1) 100%);
-    }
-
-    .container{
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        z-index: 100;
-        text-align: center;
-    }
-
-    #welcomeContainer{
-        top: 30%;
-    }
-
-    #greeting{
-        font-size: 40pt;
-    }
-
-    input{
-        border: none;
-        border-bottom: 1px solid #fff;
-        background: transparent;
-        font-family: 'Amatic SC';
-        font-size: 30pt;
-        text-align: center;
-    }
-
-    input:focus{
-        outline: none;
-    }
-
-    #goBtn{
-        width: 200px;
-        border: 1px solid #fff;
-        background: transparent;
-        display: block;
-        margin: 0 auto;
-        margin-top: 20px;
-        outline: none;
-    }
-
-    #goBtn:hover{
-        background: rgba(0, 0, 0, 0.5);
-        cursor: pointer;
-    }
-
-    #gameContainer{
-        top: 20%;
-        display: none;
-        cursor: pointer;
-        select: none;
-        -webkit-user-select: none; /* webkit (safari, chrome) browsers */
-        -moz-user-select: none; /* mozilla browsers */
-        -khtml-user-select: none; /* webkit (konqueror) browsers */
-        -ms-user-select: none; /* IE10+ */
-    }
-
-    progress{
-        height: 5px;
-        width: 50%;
-        -webkit-appearance: none;
-        border: none;
-    }
-
-    progress::-webkit-progress-bar {
-        background: transparent;
-        border-radius: 10px;
-        padding: 2px;
-    }
-
-    progress::-webkit-progress-value {
-        border-radius: 10px;
-        box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
-        background: white;
-    }
-
-    #score{
-        position: absolute;
-        z-index: 100;
-        margin: 0 auto;
-        top: 5%;
-        left: 5%;
-    }
-
-
-    </style>
-
-    <script>
-
-    var name;
-    var ctr = 0;
-    var gameEnd = false;
-    var timeleft = 10;
-    var score = 0;
-
-    $(document).ready(function(){
-        loadLetters();
-
-        $('#goBtn').click(function(){
-            if($('#nameIn').val() !== ""){
-                $('#welcomeContainer').hide();
-
-                name = $('#nameIn').val();
-
-                $('#inst').text($('#inst').text() + name + "!");
-
-                $('#gameContainer').show();
-
-                startTimer();
-            }
-        });
-
-        $('#gameContainer').click(function(){
-            if(!gameEnd){
-                ctr++;
-                $('#clickCtr').text(ctr + " clicks");
-            }
-        });
-
-    });
-
-    function startTimer(){
-        var clickTimer = setInterval(function(){
-            document.getElementById("progressBar").value = 10 - --timeleft;
-            if(timeleft < 0){
-                clearInterval(clickTimer);
-                gameEnd = true;
-                $("#gameContainer").hide();
-                score = Math.floor(ctr / 10);
-                $("#score").text("Letters Sent: " + score);
-            }
-        },1000);
-    }
-
-    function loadLetters(){
-        $.ajax({
-        url: 'letter.json',
-        type: 'get',
-        dataType: 'json',
-        error:
-            function(data){
-            },
-        success:
-            function(data){
-              for(var i = 0; i < data.length; i++){
-                  createLetter(data[i]);
-              }
-            }
-        });
-    }
-
-    function createLetter(letter){
-        var id = letter.id;
-        var to = letter.to;
-        var from = letter.from;
-        var message = letter.message;
-
-        console.log(message);
-    }
-
-    </script>
+    <link href='style.css' rel='stylesheet'>
 </head>
 
 <body>
@@ -214,14 +29,12 @@
                 0 clicks
             </div>
 
-            </br>
+            <br />
 
             <progress value="0" max="10" id="progressBar"></progress>
         </div>
 
-        <div id="score">
-
-        </div>
+        <div id="score"></div>
 
     </div>
 
@@ -261,9 +74,9 @@
         createLights();
 
         // add the objects
-        // createPlane();
-        createSea();
-        createSky();
+        createPlane();
+        // createSea();
+        // createSky();
 
         // var axesHelper = new THREE.AxesHelper( 1000 );
         // scene.add( axesHelper );
@@ -337,6 +150,45 @@
         scene.add(ambientLight);
         scene.add(hemisphereLight);
         scene.add(shadowLight);
+    }
+
+    function createPlane(){
+
+        var objLoader = new THREE.OBJLoader();
+        // var material = new THREE.MeshLambertMaterial({color: 'white', side: THREE.DoubleSide});
+        objLoader.load(
+            'obj/plane.obj',
+            function (obj) {
+                obj.traverse(function (child) {
+
+                    if (child instanceof THREE.Mesh) {
+                        // child.material = material;
+                        child.material.color = 0xffb830;
+                    }
+
+                });
+
+                obj.position.set(0, 100, 100);
+                camera.position.set(0, -600, 2000);
+                // obj.scale.set(0.1, 0.1, 0.1);
+                obj.rotateZ(Math.PI * 2);
+                scene.add(obj);
+            },
+        	// called when loading is in progresses
+        	function ( xhr ) {
+
+        		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+        	},
+        	// called when loading has errors
+        	function ( error ) {
+
+        		console.log( 'An error happened' );
+
+        	}
+        );
+
+
     }
 
     function Sea(){
@@ -565,12 +417,12 @@
     function loop(){
         // Rotate the propeller, the sea and the sky
         // airplane.propeller.rotation.x += 0.3;
-        sea.mesh.rotation.x += .0075;
-        sky.mesh.rotation.x += .005;
+        // sea.mesh.rotation.x += .0075;
+        // sky.mesh.rotation.x += .005;
 
         // respawnClouds();
 
-        sea.moveWaves();
+        // sea.moveWaves();
 
         // render the scene
         renderer.render(scene, camera);
@@ -579,7 +431,7 @@
         requestAnimationFrame(loop);
     }
 
-    </script>
+</script>
 </body>
 
 </html>
