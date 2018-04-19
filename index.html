@@ -127,6 +127,8 @@
     var score = 0;
 
     $(document).ready(function(){
+        loadLetters();
+
         $('#goBtn').click(function(){
             if($('#nameIn').val() !== ""){
                 $('#welcomeContainer').hide();
@@ -158,9 +160,35 @@
                 gameEnd = true;
                 $("#gameContainer").hide();
                 score = Math.floor(ctr / 10);
-                $("#score").text("Score: " + score);
+                $("#score").text("Letters Sent: " + score);
             }
         },1000);
+    }
+
+    function loadLetters(){
+        $.ajax({
+        url: 'letter.json',
+        type: 'get',
+        dataType: 'json',
+        error:
+            function(data){
+            },
+        success:
+            function(data){
+              for(var i = 0; i < data.length; i++){
+                  createLetter(data[i]);
+              }
+            }
+        });
+    }
+
+    function createLetter(letter){
+        var id = letter.id;
+        var to = letter.to;
+        var from = letter.from;
+        var message = letter.message;
+
+        console.log(message);
     }
 
     </script>
@@ -237,19 +265,8 @@
         createSea();
         createSky();
 
-        var axesHelper = new THREE.AxesHelper( 1000 );
-        scene.add( axesHelper );
-
-        // var xAxis = new THREE.Geometry ();
-        // 	xAxis.vertices.push (new THREE.Vector3 (-1000, 0, -1000));
-        // 	xAxis.vertices.push (new THREE.Vector3 (1000, 0, -1000));
-        // var yAxis = new THREE.Geometry ();
-        // 	yAxis.vertices.push (new THREE.Vector3 (0, -1000, -1000));
-        // 	yAxis.vertices.push (new THREE.Vector3 (0, 1000, -1000));
-        // var red = new THREE.MeshBasicMaterial ({color: 0xff0000});
-        // var green = new THREE.MeshBasicMaterial ({color: 0x00ff00});
-        //             scene.add (new THREE.Line (xAxis, red));
-        // scene.add (new THREE.Line (yAxis, green));
+        // var axesHelper = new THREE.AxesHelper( 1000 );
+        // scene.add( axesHelper );
 
         // start a loop that will update the objects' positions
         // and render the scene on each frame
