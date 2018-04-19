@@ -19,7 +19,7 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        background: linear-gradient(#e4e0ba, #f7d9aa);
+        background: linear-gradient(to bottom, rgba(146,205,221,1) 0%, rgba(117,189,209,1) 27%, rgba(245,124,103,1) 64%, rgba(240, 120, 40, 0.89) 83%, rgba(240,120,40,1) 100%);
     }
     </style>
 </head>
@@ -28,6 +28,7 @@
     <div id="playzone"></div>
 
     <script>
+
     /* SCENE VARIABLES */
     var scene,
     camera, FOV, aspectRatio, near, far, LOCAL_HEIGHT, LOCAL_WIDTH,
@@ -37,7 +38,7 @@
     var cloudArray = [];
 
     /* LIGHTING */
-    var hemisphereLight, shadowLight;
+    var ambientLight, hemisphereLight, shadowLight;
 
     var sea;
     var sky;
@@ -66,6 +67,20 @@
         createSea();
         createSky();
 
+        var axesHelper = new THREE.AxesHelper( 1000 );
+        scene.add( axesHelper );
+
+        // var xAxis = new THREE.Geometry ();
+		// 	xAxis.vertices.push (new THREE.Vector3 (-1000, 0, -1000));
+		// 	xAxis.vertices.push (new THREE.Vector3 (1000, 0, -1000));
+		// var yAxis = new THREE.Geometry ();
+		// 	yAxis.vertices.push (new THREE.Vector3 (0, -1000, -1000));
+		// 	yAxis.vertices.push (new THREE.Vector3 (0, 1000, -1000));
+		// var red = new THREE.MeshBasicMaterial ({color: 0xff0000});
+		// var green = new THREE.MeshBasicMaterial ({color: 0x00ff00});
+        //             scene.add (new THREE.Line (xAxis, red));
+		// scene.add (new THREE.Line (yAxis, green));
+
         // start a loop that will update the objects' positions
         // and render the scene on each frame
         loop();
@@ -77,7 +92,7 @@
 
         scene = new THREE.Scene();
 
-        scene.fog = new THREE.Fog(0xd5e0e5, 100, 950);
+        scene.fog = new THREE.Fog(0xf7ddc0, 100, 950);
 
         // Create the camera
         aspectRatio = LOCAL_WIDTH / LOCAL_HEIGHT;
@@ -112,6 +127,8 @@
     }
 
     function createLights() {
+        ambientLight = new THREE.AmbientLight(0xdc8874, .5);
+
         // gradient: sky to ground
         hemisphereLight = new THREE.HemisphereLight(0xaaaaaa,0x000000, .9);
 
@@ -130,6 +147,7 @@
         shadowLight.shadow.mapSize.width = 2048;
         shadowLight.shadow.mapSize.height = 2048;
 
+        scene.add(ambientLight);
         scene.add(hemisphereLight);
         scene.add(shadowLight);
     }
@@ -164,7 +182,7 @@
                 // a random angle
                 ang:Math.random()*Math.PI*2,
                 // a random distance
-                amp:5 + Math.random()*15,
+                amp:5 + Math.random()*30,
                 // a random speed between 0.016 and 0.048 radians / frame
                 speed:0.016 + Math.random()*0.032
             });
@@ -203,7 +221,7 @@
             v.y = vprops.y + Math.sin(vprops.ang)*vprops.amp;
 
             // increment the angle for the next frame
-            vprops.ang += vprops.speed;
+            //vprops.ang += vprops.speed;
 
         }
 
@@ -238,11 +256,11 @@
         // create a material; a simple white material will do the trick
         var mat = new THREE.MeshPhongMaterial({
             color:colors.white,
-            opacity:.9
+            opacity:.8
         });
 
         // duplicate the geometry a random number of times
-        var nBlocs = 3+Math.floor(Math.random()*3);
+        var nBlocs = 4 + Math.floor(Math.random() * 3);
         for (var i=0; i<nBlocs; i++ ){
 
             // create the mesh by cloning the geometry
@@ -250,13 +268,13 @@
 
             // set the position and the rotation of each cube randomly
             m.position.x = i*15;
-            m.position.y = Math.random()*10;
+            m.position.y = Math.random()*15;
             m.position.z = Math.random()*10;
             m.rotation.z = Math.random()*Math.PI*2;
             m.rotation.y = Math.random()*Math.PI*2;
 
             // set the size of the cube randomly
-            var s = .1 + Math.random()*.9;
+            var s = .6 + Math.random()*.9;
             m.scale.set(s,s,s);
 
             // allow each cube to cast and to receive shadows
@@ -268,25 +286,22 @@
         }
     }
 
-    function respawnClouds(){
-        // for(var i = 0; i < cloudArray.length; i++)
-        // {
-        //     console.log(cloudArray[0].mesh.position.z);
-        // }
-
-        console.log(cloudArray[0].mesh.position.z);
-    }
-
     function Sky(){
         // Create an empty container
         this.mesh = new THREE.Object3D();
 
         // choose a number of clouds to be scattered in the sky
-        this.nClouds = 30;
+        this.nClouds = 40;
 
         // To distribute the clouds consistently,
         // we need to place them according to a uniform angle
         var stepAngle = Math.PI*2 / this.nClouds;
+
+        // 45 degrees in radians
+        var theta = 45 / 180 * Math.PI;
+
+        // const. distance between sea and clouds
+        var clearance = 200;
 
         // create the clouds
         for(var i=0; i<this.nClouds; i++){
@@ -297,18 +312,50 @@
             var a = stepAngle*i; // this is the final angle of the cloud
             var h = 750 + Math.random()*200; // this is the distance between the center of the axis and the cloud itself
 
-            // Trigonometry!!! I hope you remember what you've learned in Math :)
-            // in case you don't:
-            // we are simply converting polar coordinates (angle, distance) into Cartesian coordinates (x, y)
-            c.mesh.position.y = Math.sin(a)*h;
-            c.mesh.position.x = Math.cos(a)*h;
+            var thetaP = theta * (i % 8);
+            var dist = 750 + Math.random() * 250;
 
-            // rotate the cloud according to its position
-            c.mesh.rotation.z = a + Math.PI/2;
+            var posY = Math.sin(thetaP) * dist;
+            var posX = Math.cos(thetaP) * dist;
 
-            // for a better result, we position the clouds
-            // at random depths inside of the scene
-            c.mesh.position.z = -400-Math.random()*400;
+            console.log("initial x: ", posX);
+
+            posX -= Math.random() * 225 + Math.random() * 450;
+
+            console.log("next x: ", posX);
+
+            if(posX >= 0 && posY >= 0){  // Quadrant I
+                posY += clearance;
+            }
+            else if(posX < 0 && posY > 0){  // Quadrant II
+                posY += clearance;
+            }
+            else if(posX < 0 && posY < 0){  // Quadrant III
+                while(posY > -1200)
+                    posY = posY - Math.random() * 150;
+
+                posY -= clearance;
+            }
+            else if(posX > 0 && posY < 0){  // Quadrant IV
+                while(posY > -1200)
+                    posY = posY - Math.random() * 150;
+
+                posY -= clearance;
+            }
+
+            c.mesh.position.y = posY;
+            c.mesh.position.x = posX;
+
+            var posZ = Math.random() * 100 * Math.random() * 25;
+
+            var choose = Math.random() * 10;
+
+            if(choose < 5)
+                c.mesh.position.z = -1 * posZ;
+            else
+                c.mesh.position.z = posZ;
+
+            // console.log(c.mesh.position);
 
             // we also set a random scale for each cloud
             var s = 1+Math.random()*2;
@@ -318,8 +365,6 @@
 
             // do not forget to add the mesh of each cloud in the scene
             this.mesh.add(c.mesh);
-
-
         }
     }
 
