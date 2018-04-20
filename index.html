@@ -64,6 +64,15 @@
         blue:0x68c3c0,
     };
 
+    // ends the game
+    var done = false;
+
+    // 45 degrees in radians
+    var theta = 45 / 180 * Math.PI;
+
+    // const. distance between sea and clouds
+    var clearance = 200;
+
     window.addEventListener('load', init, false);
 
     function init() {
@@ -74,9 +83,8 @@
         createLights();
 
         // add the objects
-        createPlane();
-        // createSea();
-        // createSky();
+        createSea();
+        createSky();
 
         // var axesHelper = new THREE.AxesHelper( 1000 );
         // scene.add( axesHelper );
@@ -155,23 +163,73 @@
     function createPlane(){
 
         var objLoader = new THREE.OBJLoader();
-        // var material = new THREE.MeshLambertMaterial({color: 'white', side: THREE.DoubleSide});
+        var material = new THREE.MeshLambertMaterial({
+            color: '#fff'
+        });
+
         objLoader.load(
             'obj/plane.obj',
             function (obj) {
                 obj.traverse(function (child) {
 
                     if (child instanceof THREE.Mesh) {
-                        // child.material = material;
-                        child.material.color = 0xffb830;
+                        child.material = material;
                     }
 
                 });
 
-                obj.position.set(0, 100, 100);
                 camera.position.set(0, -600, 2000);
-                // obj.scale.set(0.1, 0.1, 0.1);
-                obj.rotateZ(Math.PI * 2);
+
+                obj.scale.set(50, 50, 50);
+
+                var thetaP = theta;
+                var dist =  600 + Math.random() * 250 + clearance;
+
+                var posY = Math.sin(thetaP) * dist;
+                var posX = Math.cos(thetaP) * dist;
+
+                posX -= Math.random() * 225 + Math.random() * 450;
+
+                if(posX >= 0 && posY >= 0){  // Quadrant I
+                    posY += clearance;
+                }
+                else if(posX < 0 && posY > 0){  // Quadrant II
+                    posY += clearance;
+                }
+                else if(posX < 0 && posY < 0){  // Quadrant III
+                    while(posY > -1200)
+                    posY = posY - Math.random() * 150;
+
+                    posY -= clearance;
+                }
+                else if(posX > 0 && posY < 0){  // Quadrant IV
+                    while(posY > -1200)
+                    posY = posY - Math.random() * 150;
+
+                    posY -= clearance;
+                }
+
+                obj.position.y = posY;
+                obj.position.x = posX;
+
+                // var posZ = Math.random() * 100 * Math.random() * 25;
+
+                // var choose = Math.random() * 10;
+                //
+                // if(choose < 5)
+                // obj.position.z = -1 * posZ;
+                // else
+                // obj.position.z = posZ;
+
+                obj.position.z = 100;
+
+                obj.rotation.z = Math.random() * 30 * Math.PI / 180;
+
+                if(Math.random() * 10 < 6)
+                    obj.rotation.z *= -1;
+
+                console.log(obj.position);
+
                 scene.add(obj);
             },
         	// called when loading is in progresses
@@ -260,17 +318,11 @@
             v.y = vprops.y + Math.sin(vprops.ang)*vprops.amp;
 
             // increment the angle for the next frame
-            //vprops.ang += vprops.speed;
+            vprops.ang += vprops.speed;
 
         }
 
-        // Tell the renderer that the geometry of the sea has changed.
-        // In fact, in order to maintain the best level of performance,
-        // three.js caches the geometries and ignores any changes
-        // unless we add this line
         this.mesh.geometry.verticesNeedUpdate=true;
-
-        // sea.mesh.rotation.x += .0025;
     }
 
     function createSea(){
@@ -336,28 +388,15 @@
         // we need to place them according to a uniform angle
         var stepAngle = Math.PI*2 / this.nClouds;
 
-        // 45 degrees in radians
-        var theta = 45 / 180 * Math.PI;
-
-        // const. distance between sea and clouds
-        var clearance = 200;
-
         // create the clouds
         for(var i=0; i<this.nClouds; i++){
             var c = new Cloud();
-
-            // set the rotation and the position of each cloud;
-            // for that we use a bit of trigonometry
-            var a = stepAngle*i; // this is the final angle of the cloud
-            var h = 750 + Math.random()*200; // this is the distance between the center of the axis and the cloud itself
 
             var thetaP = theta * (i % 8);
             var dist =  600 + Math.random() * 250 + clearance;
 
             var posY = Math.sin(thetaP) * dist;
             var posX = Math.cos(thetaP) * dist;
-
-            console.log(posX, posY);
 
             posX -= Math.random() * 225 + Math.random() * 450;
 
@@ -415,14 +454,24 @@
     }
 
     function loop(){
-        // Rotate the propeller, the sea and the sky
-        // airplane.propeller.rotation.x += 0.3;
-        // sea.mesh.rotation.x += .0075;
-        // sky.mesh.rotation.x += .005;
+        sea.mesh.rotation.x += .0075;
+        sky.mesh.rotation.x += .005;
 
         // respawnClouds();
 
-        // sea.moveWaves();
+        sea.moveWaves();
+
+        if($("#score").text() != "" && !done){
+            var split = $("#score").text().split(": ");
+            var nPlane = parseInt(split[1]);
+            done = true;
+
+            for(var i = 0; i < nPlane; i++){
+                createPlane();
+            }
+
+        }
+
 
         // render the scene
         renderer.render(scene, camera);

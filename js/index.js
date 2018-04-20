@@ -68,3 +68,7 @@ function createLetter(letter){
 
     // console.log(message);
 }
+
+function randPos(){
+    
+}
